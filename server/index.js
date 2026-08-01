@@ -7,27 +7,14 @@ import path from 'node:path'
 import { promises as fs } from 'node:fs'
 import { execFile } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
+import { fileURLToPath } from 'node:url'
+import { officeFormats } from '../shared/officeFormats.js'
 
 const app = express()
 const port = Number(process.env.PORT || 3001)
 const tempRoot = path.join(os.tmpdir(), 'office-converter-web')
-
-const officeFormats = [
-  'doc',
-  'docx',
-  'odt',
-  'rtf',
-  'txt',
-  'html',
-  'pdf',
-  'xls',
-  'xlsx',
-  'ods',
-  'csv',
-  'ppt',
-  'pptx',
-  'odp',
-]
+const currentDir = path.dirname(fileURLToPath(import.meta.url))
+const distDir = path.join(currentDir, '..', 'dist')
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -45,6 +32,13 @@ const conversionRateLimit = rateLimit({
   message: {
     error: 'عدد طلبات التحويل كبير جدًا. يرجى المحاولة بعد دقيقة.',
   },
+})
+
+const webRateLimit = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
 })
 
 const sanitizeFileName = (value) =>
@@ -135,6 +129,13 @@ app.post('/api/convert', conversionRateLimit, upload.single('file'), async (req,
     res.download(convertedPath, downloadName, async () => {
       await fs.rm(sessionDir, { recursive: true, force: true })
     })
+
+    if (process.env.NODE_ENV === 'production') {
+      app.use(webRateLimit, express.static(distDir))
+      app.get(/^(?!\/api).*/, webRateLimit, (_req, res) => {
+        res.sendFile(path.join(distDir, 'index.html'))
+      })
+    }
   } catch (error) {
     if (error?.code === 'ENOENT') {
       res.status(500).json({

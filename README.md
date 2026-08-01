@@ -28,10 +28,11 @@ npm run dev
 - `npm run dev` تشغيل الواجهة والخادم معًا
 - `npm run build` بناء نسخة الإنتاج للواجهة
 - `npm run start` تشغيل خادم التحويل فقط
+- `NODE_ENV=production npm run start` تشغيل نسخة الإنتاج (API + الواجهة المبنية في `dist`)
 - `npm run lint` فحص الشيفرة
 
 ## الصيغ المدعومة
 
-`doc`, `docx`, `odt`, `rtf`, `txt`, `html`, `pdf`, `xls`, `xlsx`, `ods`, `csv`, `ppt`, `pptx`, `odp`
+`doc`, `docx`, `docm`, `dot`, `dotx`, `odt`, `ott`, `rtf`, `txt`, `html`, `pdf`, `xls`, `xlsx`, `xlsm`, `xlt`, `xltx`, `ods`, `ots`, `csv`, `ppt`, `pptx`, `pptm`, `pps`, `ppsx`, `pot`, `potx`, `odp`, `otp`
 
 > ملاحظة: دقة التحويل وجودة العناصر تعتمد على مدى دعم LibreOffice لكل زوج تحويل.

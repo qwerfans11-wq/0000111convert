@@ -1,44 +1,61 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './App.css'
-
-const officeFormats = [
-  'doc',
-  'docx',
-  'odt',
-  'rtf',
-  'txt',
-  'html',
-  'pdf',
-  'xls',
-  'xlsx',
-  'ods',
-  'csv',
-  'ppt',
-  'pptx',
-  'odp',
-]
+import { officeFormats as defaultFormats } from '../shared/officeFormats'
 
 function App() {
   const [selectedFile, setSelectedFile] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [officeFormats, setOfficeFormats] = useState(defaultFormats)
+  const [sourceFormatChoice, setSourceFormatChoice] = useState('')
   const [targetFormat, setTargetFormat] = useState('pdf')
   const [outputName, setOutputName] = useState('')
   const [statusMessage, setStatusMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [isConverting, setIsConverting] = useState(false)
 
-  const sourceFormat = useMemo(() => {
-    if (!selectedFile) {
-      return ''
+  useEffect(() => {
+    const loadFormats = async () => {
+      try {
+        const response = await fetch('/api/formats')
+        if (!response.ok) {
+          return
+        }
+        const payload = await response.json()
+        if (Array.isArray(payload.formats) && payload.formats.length > 0) {
+          setOfficeFormats(payload.formats)
+        }
+      } catch {
+        // fallback to defaults
+      }
     }
-    const extension = selectedFile.name.split('.').pop()?.toLowerCase() || ''
-    return extension
-  }, [selectedFile])
+
+    loadFormats()
+  }, [])
+
+  const sourceFormat = useMemo(
+    () => selectedFile?.name.split('.').pop()?.toLowerCase() || '',
+    [selectedFile],
+  )
+
+  useEffect(() => {
+    setSourceFormatChoice(sourceFormat)
+  }, [sourceFormat])
 
   const targetOptions = useMemo(
     () => officeFormats.filter((format) => format !== sourceFormat),
-    [sourceFormat],
+    [officeFormats, sourceFormat],
   )
+
+  useEffect(() => {
+    if (targetOptions.length === 0) {
+      setTargetFormat('')
+      return
+    }
+
+    if (!targetOptions.includes(targetFormat)) {
+      setTargetFormat(targetOptions[0])
+    }
+  }, [targetFormat, targetOptions])
 
   const applyFile = (file) => {
     if (!file) {
@@ -52,6 +69,7 @@ function App() {
     setOutputName(inferredName)
 
     const extension = file.name.split('.').pop()?.toLowerCase() || ''
+    setSourceFormatChoice(extension)
     const fallback = extension === 'pdf' ? 'docx' : 'pdf'
     const nextTarget = officeFormats.includes(fallback) ? fallback : officeFormats[0]
     setTargetFormat(extension === nextTarget ? officeFormats[0] : nextTarget)
@@ -154,7 +172,24 @@ function App() {
 
         <div className="controls">
           <div className="field">
-            <label htmlFor="targetFormat">صيغة التحويل</label>
+            <label htmlFor="sourceFormat">من</label>
+            <select
+              id="sourceFormat"
+              value={sourceFormatChoice}
+              onChange={(event) => setSourceFormatChoice(event.target.value)}
+              disabled
+            >
+              <option value="">اختر ملفًا أولًا</option>
+              {officeFormats.map((format) => (
+                <option key={format} value={format}>
+                  {format}
+                </option>
+              ))}
+            </select>
+            </div>
+
+            <div className="field">
+            <label htmlFor="targetFormat">إلى</label>
             <select
               id="targetFormat"
               value={targetFormat}
@@ -162,7 +197,7 @@ function App() {
             >
               {targetOptions.map((format) => (
                 <option key={format} value={format}>
-                  {sourceFormat || 'file'} → {format}
+                  {format}
                 </option>
               ))}
             </select>
