@@ -34,6 +34,13 @@ const conversionRateLimit = rateLimit({
   },
 })
 
+const webRateLimit = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
 const sanitizeFileName = (value) =>
   value
     .replace(/[^\p{L}\p{N}._\-\s]/gu, '')
@@ -124,8 +131,8 @@ app.post('/api/convert', conversionRateLimit, upload.single('file'), async (req,
     })
 
     if (process.env.NODE_ENV === 'production') {
-      app.use(express.static(distDir))
-      app.get(/^(?!\/api).*/, (_req, res) => {
+      app.use(webRateLimit, express.static(distDir))
+      app.get(/^(?!\/api).*/, webRateLimit, (_req, res) => {
         res.sendFile(path.join(distDir, 'index.html'))
       })
     }
