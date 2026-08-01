@@ -1,16 +1,37 @@
-# React + Vite
+# Office Converter Pro
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+تطبيق ويب تفاعلي لتحويل ملفات أوفيس بين صيغ متعددة مع:
 
-Currently, two official plugins are available:
+- سحب وإسقاط الملفات
+- اختيار صيغة التحويل (من وإلى صيغ أوفيس المدعومة)
+- إعادة تسمية الملف قبل التحميل
+- تنزيل تلقائي للملف الناتج بعد التحويل
+- واجهة احترافية وسلسة
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## المتطلبات
 
-## React Compiler
+- Node.js 20+
+- LibreOffice مثبت على الجهاز (يوفر أمر `soffice`)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## التشغيل
 
-## Expanding the Oxlint configuration
+```bash
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+- الواجهة الأمامية: `http://localhost:5173`
+- واجهة التحويل الخلفية: `http://localhost:3001`
+
+## الأوامر
+
+- `npm run dev` تشغيل الواجهة والخادم معًا
+- `npm run build` بناء نسخة الإنتاج للواجهة
+- `npm run start` تشغيل خادم التحويل فقط
+- `npm run lint` فحص الشيفرة
+
+## الصيغ المدعومة
+
+`doc`, `docx`, `odt`, `rtf`, `txt`, `html`, `pdf`, `xls`, `xlsx`, `ods`, `csv`, `ppt`, `pptx`, `odp`
+
+> ملاحظة: دقة التحويل وجودة العناصر تعتمد على مدى دعم LibreOffice لكل زوج تحويل.
