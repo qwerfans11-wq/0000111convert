@@ -1,5 +1,6 @@
 import cors from 'cors'
 import express from 'express'
+import rateLimit from 'express-rate-limit'
 import multer from 'multer'
 import os from 'node:os'
 import path from 'node:path'
@@ -10,9 +11,6 @@ import { randomUUID } from 'node:crypto'
 const app = express()
 const port = Number(process.env.PORT || 3001)
 const tempRoot = path.join(os.tmpdir(), 'office-converter-web')
-const rateWindowMs = 60 * 1000
-const maxRequestsPerWindow = 20
-const requestLog = new Map()
 
 const officeFormats = [
   'doc',
@@ -39,25 +37,15 @@ const upload = multer({
 app.use(cors())
 app.use(express.json())
 
-const conversionRateLimit = (req, res, next) => {
-  const now = Date.now()
-  const requestKey =
-    req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown'
-
-  const existing = requestLog.get(requestKey) || []
-  const recentTimestamps = existing.filter((timestamp) => now - timestamp < rateWindowMs)
-
-  if (recentTimestamps.length >= maxRequestsPerWindow) {
-    res.status(429).json({
-      error: 'عدد طلبات التحويل كبير جدًا. يرجى المحاولة بعد دقيقة.',
-    })
-    return
-  }
-
-  recentTimestamps.push(now)
-  requestLog.set(requestKey, recentTimestamps)
-  next()
-}
+const conversionRateLimit = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'عدد طلبات التحويل كبير جدًا. يرجى المحاولة بعد دقيقة.',
+  },
+})
 
 const sanitizeFileName = (value) =>
   value
